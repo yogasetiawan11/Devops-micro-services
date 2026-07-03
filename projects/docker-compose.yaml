@@ -1,24 +1,40 @@
 services:
-  postgres:
-  image: postgres:15-alpine
-  container_name: boutique_db
-  environment:
-    POSTGRES_DB:
-    POSGRES_PASSWORD:
-    POSGRES_USER:
-    POSTGRES_MULTYBITE:
-  ports:
-  - "5432:5432" 
+  database:
+    postgres:
+    image: postgres:15-alpine
+    container_name: boutique_db
+    environment:
+      POSTGRES_DB:
+      POSGRES_PASSWORD:
+      POSGRES_USER:
+      POSTGRES_MULTYBITE:
+    ports:
+      - "5432:5432" 
 
-  volumes:
-  - postgres_data:var/lib/postgresql/data 
-  - ./database/init:docker-entrypoint.initdb.d
+    volumes:
+      - postgres_data:var/lib/postgresql/data 
+      - ./database/init:docker-entrypoint.initdb.d
 
-  networks:
-  - boutique-networks
+    networks:
+      - boutique-networks
 
-  healtcheck:
-  test: ["CMD-SHELL", pg_isready, -U posgres"]
-  intervals: 30s
-  timeout: 10s
-  retries: 5s 
+    healtcheck:
+    test: ["CMD-SHELL", pg_isready, -U posgres"]
+    intervals: 30s
+    timeout: 10s
+    retries: 5s 
+
+    depends_on: 
+      database:
+        condition: service_healthy
+
+
+  Backend:
+    build:
+      context: ./projects/boutique-microservices/backend/services/auth
+      dockerfile: Dockerfile
+
+  frontend:
+    build: 
+      context: ./projects/boutique-microservices/frontend/
+      dockerfile: Dockerfile
