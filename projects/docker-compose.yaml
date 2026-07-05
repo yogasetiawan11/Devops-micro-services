@@ -1,6 +1,5 @@
 services:
-  database:
-    postgres:
+  postgres:
     image: postgres:15-alpine
     container_name: boutique_db
     environment:
@@ -29,12 +28,72 @@ services:
         condition: service_healthy
 
 
-  Backend:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - boutique-networks
+    restart: unless-stopped
+
+  grafana:
+    image:
+    container_name: grafana-dev
+    ports:
+      - "3007:3000"
+    env:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin-123
+      GF_ALLOW_USER_SIGN_UP: false
+
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - boutique-networks
+    restart: unless-stopped
+
+  gateway:
     build:
       context: ./projects/boutique-microservices/backend/services/auth
       dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "3001:3001"
+    environment:
+     - NODE_ENV=development
+     - PORT=3001
+     - AUTH_SERVICE_URL=http://auth:3002
+     - PRODUCT_SERVICE_URL=http://product:3003
+     - ORDER_SERVICE_URL=http://order-service:3004
+     - ORDERS_SERVICE_URL=http://orders:3005
+     - USER_SERVICE_URL=http://service:3006
+    depends_on:
+      postgres:
+        condition: service_healthy   
+    networks:
+      - boutique-networks
+    restart: unless-stopped
+
 
   frontend:
     build: 
       context: ./projects/boutique-microservices/frontend/
       dockerfile: Dockerfile
+
+volumes:
+  postgres_data:
+    driver: local
+
+  prometheus_data:
+    driver: local
+
+  grafana_data:
+    driver: local
+
+  networks:
+    boutique_network:
+      driver: bridge
