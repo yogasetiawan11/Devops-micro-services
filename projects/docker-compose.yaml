@@ -58,7 +58,7 @@ services:
 
   gateway:
     build:
-      context: ./projects/boutique-microservices/backend/services/auth
+      context: ./backend/services/auth
       dockerfile: Dockerfile
     container_name: gateway
     ports:
@@ -78,6 +78,81 @@ services:
       - boutique-networks
     restart: unless-stopped
 
+  auth:
+    build: 
+      context: ./backend/services/auth
+      dockerfile: Dockerfile
+    container_name: auth
+    ports:
+      - "3002:3002"
+    env:
+     - ENV_NAME=development 
+     - PORT=3002
+     - DATABASE_URL=postgresql://postgres:posgres123@posgres:5432/auth
+    depends_on:
+      condition: service_healthy
+    networks:
+      - boutique_network
+    restart: unless_stopped
+
+  product:
+    build:
+      context: ./backend/services/product-service
+      dockerfile: Dockerfile
+    container_name: product
+    ports:
+      - "3003:3003"
+    environment:
+      - ENV_NODE=development
+      - PORT=3003
+      - DATABASE_URL=postgresql://postgres:postgres123@posgres:5432/product
+    depends_on:
+      - condition: service_healthy
+    networks:
+      - boutique_network
+    restart: unless_stopped
+
+  order_service:
+    build:
+      context: ./backend/services/order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "3004:3004"
+    environment:
+      - ENV_NODE=development
+      - PORT=3004
+      - DATABASE_URL=posgres://posgres:posgres123@posgres:5432/order_service
+    depends_on:
+      condition: service_healthy
+    networks:
+      - boutique_network
+    restart: unless_stopped
+    
+  orders: 
+    build:
+      context: ./backend/services/orders/
+      dockerfile: Dockerfile
+    container_name: orders
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - DATABASE_URL=posgres://postgres:posgres123@posgres:5432/orders
+    depends_on:
+      condition: service_healthy
+    networks:
+      - boutique_network
+    restart: unless_stopped
+
+  user:
+    build:
+      context: ./backend/services/user-service
+      dockerfile: Dockerfile
+    container_name: user
+    ports:
+      - "3006:3006"
 
   frontend:
     build: 
