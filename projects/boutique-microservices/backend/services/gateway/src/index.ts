@@ -21,7 +21,7 @@ const services = {
   auth: process.env.AUTH_SERVICE_URL || 'http://localhost:3002',
   products: process.env.PRODUCTS_SERVICE_URL || 'http://localhost:3003',
   orders: process.env.ORDERS_SERVICE_URL || 'http://localhost:3004',
-  users: process.env.USERS_SERVICE_URL || 'http://localhost:3005',
+  users: process.env.USERS_SERVICE_URL || 'http://localhost:3006',
 };
 
 app.use('/api/auth', createProxyMiddleware({
