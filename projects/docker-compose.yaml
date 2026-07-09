@@ -6,7 +6,7 @@ services:
       POSTGRES_DB: boutique_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
-      POSTGRES_MULTYBITE: auth_db,products_db,orders_db,users_db
+      # POSTGRES_MULTYBITE: auth_db,products_db,orders_db,users_db
     ports:
       - "5432:5432" 
 
@@ -47,13 +47,14 @@ services:
 
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
     networks:
       - boutique_networks
     restart: unless-stopped
 
   gateway:
     build:
-      context: ./boutique-microservices/backend/services/auth
+      context: ./boutique-microservices/backend/services/gateway
       dockerfile: Dockerfile
     container_name: gateway
     ports:
@@ -65,7 +66,7 @@ services:
      - PRODUCT_SERVICE_URL=http://product:3003
      - ORDER_SERVICE_URL=http://order-service:3004
      - ORDERS_SERVICE_URL=http://orders:3005
-     - USER_SERVICE_URL=http://service:3006
+     - USER_SERVICE_URL=http://user:3006
     depends_on:
       postgres:
         condition: service_healthy   
@@ -83,7 +84,7 @@ services:
     environment:
      - ENV_NAME=development 
      - PORT=3002
-     - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/auth
+     - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/auth_db
     depends_on:
       postgres:
         condition: service_healthy
@@ -101,7 +102,7 @@ services:
     environment:
       - ENV_NODE=development
       - PORT=3003
-      - DATABASE_URL=postgresql://postgres:postgres123@posgres:5432/product
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/products_db
     depends_on:
       postgres:
         condition: service_healthy
@@ -119,7 +120,7 @@ services:
     environment:
       - ENV_NODE=development
       - PORT=3004
-      - DATABASE_URL=posgres://posgres:posgres123@posgres:5432/order_service
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/orders_db
     depends_on:
       postgres:
         condition: service_healthy
@@ -137,7 +138,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3005
-      - DATABASE_URL=postgres://postgres:postgres123@postgres:5432/orders
+      - DATABASE_URL=postgres://postgres:postgres123@postgres:5432/orders_db
     depends_on:
       postgres:
         condition: service_healthy
@@ -152,6 +153,17 @@ services:
     container_name: user
     ports:
       - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
+      - DATABASE_URL=postgres://postgres:postgres123@postgres:5432/users_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - boutique_networks
+    restart: unless-stopped
+
 
   frontend:
     image: nginx:alpine
@@ -172,10 +184,8 @@ services:
 volumes:
   postgres_data:
     driver: local
-
   prometheus_data:
     driver: local
-
   grafana_data:
     driver: local
 
