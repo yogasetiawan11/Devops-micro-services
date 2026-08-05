@@ -16,6 +16,11 @@ RUN npm run build
 # Install serve globally
 RUN npm install -g serve
 
+RUN addgroup -S appgroup && \
+    adduser -S appuser -G appgroup
+
+USER appuser
+
 EXPOSE 3000
 
 # Use serve to host the static files
