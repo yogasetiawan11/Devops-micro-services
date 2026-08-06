@@ -166,7 +166,9 @@ services:
 
 
   frontend:
-    image: nginx:alpine
+    build: 
+      context: ./boutique-microservices/frontend
+      dockerfile: Dockerfile
     container_name: frontend
     volumes:
       - ./boutique-microservices/frontend/build:/usr/share/nginx/html
