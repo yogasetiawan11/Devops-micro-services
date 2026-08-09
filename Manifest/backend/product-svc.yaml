@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: product
+  namespace: boutique
+  labels:
+    app: product
+spec:
+  type: ClusterIP
+  selector:
+    app: product
+  ports:
+    - port: 3003
+      targetPort: 3003
+      protocol: TCP
+      name: http
