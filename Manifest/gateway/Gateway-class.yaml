@@ -1,0 +1,18 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: frontend-app
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: gw-frontend
+spec:
+  gatewayClassName: fronted-app
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+---
