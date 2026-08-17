@@ -1,18 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: frontend-app
+  name: envoyproxy
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: gw-frontend
-spec:
-  gatewayClassName: fronted-app
-  listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
----
+  # Here you can find particular controller that you are using from official docs 
