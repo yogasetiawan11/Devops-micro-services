@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user
-  namespace: boutique
+  name: users
+  namespace: dev
   labels:
-    app: user
+    app: users
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: user
+      app: users
   template:
     metadata:
       labels:
-        app: user
+        app: users
     spec:
       containers:
-        - name: user
+        - name: users
           image: user:latest
           imagePullPolicy: IfNotPresent
           ports:

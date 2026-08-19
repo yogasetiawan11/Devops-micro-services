@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: user
-  namespace: boutique
+  name: users
+  namespace: dev
   labels:
     app: user
 spec:
   type: ClusterIP
   selector:
-    app: user
+    app: users
   ports:
     - port: 3006
       targetPort: 3006
