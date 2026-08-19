@@ -1,0 +1,57 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: microservices-routes
+  namespace: dev
+spec:
+  parentRefs:
+    - name: gateway-boutique
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/gateway
+      backendRefs:
+        - name: gateway
+          port: 3001
+
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/auth
+      backendRefs:
+        - name: auth
+          port: 3002
+
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/product
+      backendRefs:
+        - name: product
+          port: 3003
+
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/order-service
+      backendRefs:
+        - name: order-service
+          port: 3004
+ 
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/orders
+      backendRefs:
+        - name: orders
+          port: 3005
+  
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/user
+      backendRefs:
+        - name: user
+          port: 3006
