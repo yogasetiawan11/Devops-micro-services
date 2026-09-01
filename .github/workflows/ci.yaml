@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  changes:
+    name: Detect changed components
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'projects/boutique-microservices/backend/**'
+            frontend:
+              - 'projects/boutique-microservices/frontend/**'
+
+  backend:
+    name: Backend microservices
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [auth, gateway, orders, order-service, product-service, user-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: projects/boutique-microservices/backend/services/${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: projects/boutique-microservices/backend/services/${{ matrix.service }}
+        run: npm install
+
+      - name: Build
+        working-directory: projects/boutique-microservices/backend/services/${{ matrix.service }}
+        run: npm run build
+
+      - name: Run tests
+        working-directory: projects/boutique-microservices/backend/services/${{ matrix.service }}
+        run: npm test
+
+  frontend:
+    name: Frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: projects/boutique-microservices/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: projects/boutique-microservices/frontend
+        run: npm install
+
+      - name: Lint
+        working-directory: projects/boutique-microservices/frontend
+        run: npm run lint || true
+
+      - name: Build
+        working-directory: projects/boutique-microservices/frontend
+        run: npm run build
+
+      - name: Test
+        working-directory: projects/boutique-microservices/frontend
+        run: CI=true npm test
