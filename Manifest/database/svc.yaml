@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-service
+  name: database
 spec:
   selector:
-    app.kubernetes.io/name: frontendd
+    app.kubernetes.io/name: db-postgres
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 9376
+      port: 5432
+      targetPort: 5432

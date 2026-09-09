@@ -11,14 +11,6 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /api/gateway
-      backendRefs:
-        - name: gateway
-          port: 3001
-
-    - matches:
-        - path:
-            type: PathPrefix
             value: /api/auth
       backendRefs:
         - name: auth
@@ -51,7 +43,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /api/user
+            value: /api/users
       backendRefs:
         - name: user
           port: 3006

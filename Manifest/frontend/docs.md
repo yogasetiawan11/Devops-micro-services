@@ -126,3 +126,155 @@ Determine whether `order-service` (3004) and `orders` (3005) are both needed, an
 ### E. Update Helm chart values
 
 Fix `parentRefs` to reference `gateway-boutique` in namespace `boutique`, and update path rules to match actual application routes.
+
+
+
+
+
+# Gateway Configuration Analysis
+
+## Overview
+
+This document analyzes the Gateway API configuration in `Manifest/gateway/` and identifies issues with the route setup for the boutique microservices project.
+
+---
+
+## Current State
+
+| File               | Resource     | Namespace |
+|--------------------|-------------|-----------|
+| `Gateway-class.yaml` | GatewayClass | *(cluster-scoped)* |
+| `gateway.yml`        | Gateway      | `env`     |
+| `routes.yaml`        | HTTPRoute    | `dev`     |
+
+Backend services (`Manifest/backend/`): all in namespace **`boutique`**.
+
+---
+
+## Critical Issues
+
+### 1. Three Different Namespaces — Nothing Aligns
+
+The Gateway, HTTPRoute, and backend services each live in a different namespace:
+
+| Component         | Namespace  |
+|-------------------|------------|
+| Gateway           | `env`      |
+| HTTPRoute         | `dev`      |
+| Backend services  | `boutique` |
+
+Nothing matches. The traffic path breaks at every level.
+
+### 2. Gateway Rejects the HTTPRoute Due to `allowRoutes: Same`
+
+`gateway.yml:12-14`:
+
+```yaml
+allowRoutes:
+  namespace:
+    from: Same
+```
+
+The Gateway only accepts HTTPRoutes from the `env` namespace. The HTTPRoute is in `dev`. Envoy Gateway will **silently ignore** the route attachment — no error, no traffic.
+
+### 3. BackendRefs Won't Resolve
+
+`routes.yaml:15-56` references services by name (`gateway`, `auth`, `product`, `order-service`, `orders`, `user`). These services exist only in the `boutique` namespace. Since the HTTPRoute is in `dev`, Kubernetes DNS cannot resolve them. Envoy Gateway will return **500 errors** for every rule.
+
+### 4. Path Names Don't Match Application Routes
+
+The HTTPRoute paths vs what the Express gateway (`src/index.ts`) actually proxies:
+
+| HTTPRoute Path     | App Gateway Path | Issue                    |
+|--------------------|------------------|--------------------------|
+| `/gateway`         | *(none)*         | No matching app route    |
+| `/auth`            | `/api/auth`      | Missing `/api` prefix    |
+| `/product`         | `/api/products`  | Missing prefix + singular vs plural |
+| `/order-service`   | `/api/orders`    | Different path entirely  |
+| `/orders`          | `/api/orders`    | Duplicate of above       |
+| `/user`            | `/api/users`     | Missing prefix + singular vs plural |
+
+### 5. Duplicate Order Routes
+
+Two rules target order-related services:
+- `/order-service` → `order-service:3004`
+- `/orders` → `orders:3005`
+
+These are two separate services. If only one handles order traffic, the other is dead config. If both are needed, the path names are confusing and should be clarified.
+
+---
+
+## Recommended Fix
+
+All resources must live in the **same namespace** (`boutique`) for `allowRoutes: Same` to work.
+
+### Option A — All in `boutique` (Recommended)
+
+**`gateway.yml`:**
+```yaml
+metadata:
+  name: gateway-boutique
+  namespace: boutique
+```
+
+**`routes.yaml`:**
+```yaml
+metadata:
+  name: microservices-routes
+  namespace: boutique
+```
+
+### Option B — Allow cross-namespace routes
+
+Change the Gateway listener to accept routes from specific namespaces:
+
+```yaml
+allowRoutes:
+  namespace:
+    from: Selector
+    selector:
+      matchLabels:
+        gateway-access: "true"
+```
+
+Then label the `dev` namespace accordingly. This adds complexity and is only needed if resources intentionally span namespaces.
+
+### Fix the paths
+
+Update `routes.yaml` to use `/api` prefixed paths matching the application:
+
+```yaml
+rules:
+  - matches:
+      - path:
+          type: PathPrefix
+          value: /api/auth
+    backendRefs:
+      - name: auth
+        port: 3002
+  - matches:
+      - path:
+          type: PathPrefix
+          value: /api/products
+    backendRefs:
+      - name: product
+        port: 3003
+  # ... and so on
+```
+
+Or, route all `/api/*` traffic through the app-level gateway:
+
+```yaml
+rules:
+  - matches:
+      - path:
+          type: PathPrefix
+          value: /api
+    backendRefs:
+      - name: gateway
+        port: 3001
+```
+
+### Resolve order services
+
+Determine which service (`order-service:3004` or `orders:3005`) should handle order traffic and remove the unused rule from `routes.yaml`.

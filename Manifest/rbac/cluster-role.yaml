@@ -1,0 +1,38 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: owner
+rules:
+  - apiGroups: [""]
+    resources: 
+      - pods
+      - services
+      - configmaps
+      - secrets
+      - persistentvolumeclaims
+      - persistentvolumes
+      - namespaces
+      - nodes
+      - serviceaccounts
+
+  - apiGroups: ["apps"]
+    resources: 
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+
+  - apiGroups: ["networking.k8s.io"]
+    resources: 
+      - ingresses
+      - networkpolicies
+      - ingressclasses
+
+    verbs: 
+      - get
+      - list
+      - watch
+      - create
+      - update
+

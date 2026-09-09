@@ -1,0 +1,91 @@
+
+
+---
+### Structure config to Create An Ebs volume for the database in eks.
+#apiVersion: storage.k8s.io/v1
+#kind: StorageClass
+#metadata:
+#  name: standard
+#  provisioner: rancher.io/local-path
+#reclaimPolicy: Retain
+#volumeBindingMode: WaitForFirstConsumer
+#allowVolumeExpansion: true
+
+
+
+---
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-postgres
+  namespace: dev
+  labels:
+    app.kubernetes.io/part-of: dev
+    app.kubernetes.io/component: database
+    app.kubernetes.io/name: db-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: db-postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: dev
+        app.kubernetes.io/component: database
+        app.kubernetes.io/name: db-postgres
+      # Security: don't automount service account token (DB doesn't need K8s API)
+    spec:
+      automountServiceAccountToken: false
+      tolerations:
+        - key: "node.kubernetes.io/not-ready"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 300
+      containers:
+        - name: postgres 
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          envFrom:
+            - secretRef: 
+                name: db-credentials
+          volumeMounts:
+            - name: db-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: data
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false  # Postgres needs write access
+            runAsNonRoot: false  # Postgres image runs as root by default
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "yogasetiawan34234", "-d", "db-demo"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "yogasetiawan34234", "-d", "db-demo"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: db-pvc
+
+
+
