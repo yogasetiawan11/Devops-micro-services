@@ -1,0 +1,9 @@
+# 1. Install pre-commit framework using pip "pip install pre-commit "
+# 2.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks 
+# 3. Auto-update the config to the latest repos' versions by executing "pre-commit autoupdate"
+# 4. Install with pre-commit install
