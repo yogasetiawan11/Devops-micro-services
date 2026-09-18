@@ -74,3 +74,7 @@ frontend/build/
 # Kubernetes secrets (keep templates)
 k8s/**/*.secret.yaml
 k8s/**/secrets/
+
+# Precommit cache
+.pre-commit-cache/
+*.orig
