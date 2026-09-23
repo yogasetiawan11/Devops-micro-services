@@ -1,0 +1,12 @@
+[core]
+    editor = code --wait
+
+[user]
+    name = yogasetiawan
+    email = yogasetiawan121212@gmail.com
+
+[alias]
+    st = status
+    ps = push
+    cm = commit
+    lg = log --oneline --graph --decorate
