@@ -1,0 +1,38 @@
+# Mark text as common text
+* text=auto
+*.sh text eol=lf
+
+# Mark Image as binary 
+*.png binary
+*.jpg binary
+
+# Lock File Noise Reduction 
+*.lock -diff 
+package-lock.json -diff
+
+# Generated / build artifacts
+dist/*        linguist-generated=true
+build/*       linguist-generated=true
+
+# Monorepo Linguist Cleanup
+vendor/* linguist-vendored
+node_modules/* linguist-vendored
+dist/* linguist-generated
+build/* linguist-generated
+*.min.js linguist-generated
+docs/* linguist-documentation
+
+*.sh    text eol=lf
+*.bash  text eol=lf
+
+# Avoid merge or diff for sensi informations
+.env        -diff -merge
+.env.*      -diff -merge
+
+# Export ignore
+.github/         export-ignore
+
+# Don't tell this as a code 
+docs/*       linguist-documentation
+*.md         linguist-documentation
+LICENSE      linguist-documentation

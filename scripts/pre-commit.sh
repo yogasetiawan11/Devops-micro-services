@@ -1,10 +1,4 @@
 #!/bin/bash
-################################################################################
-# author      : yogasetian
-# date        : sep 22, 2026
-# description : install pre-commit on local machine to prevent
-#               credential information from being pushed to git
-################################################################################
 
 set -euo pipefail
 

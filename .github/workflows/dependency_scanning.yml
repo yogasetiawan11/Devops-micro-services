@@ -1,0 +1,60 @@
+name: Dependency Check
+
+  # 1. Trigger using cron 
+on:
+ 
+  schedule:
+    - cron: '0 3 * * 0'
+    # - cron: '30 5 * * 1-5' # every day at 3 UTC
+
+  # Manual trigger: run using the terminal 'gh workflow'
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    name: Dependency check 
+    runs-on: ubuntu-latest
+
+    steps:
+      # 3. Checkout code from repository (syncronize)
+      - name: GH Actions chckout
+        uses: actions/checkout@v4
+
+      # --- adjust the step below with your language ---
+
+      # 4. Setup node.js env 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 5. Install dependency
+      - name: Install dependency
+        run: npm ci
+
+      # 6. Running security scan 
+      - name: running npm audit
+        id: npm_audit
+        continue-on-error: true # continue even though error exist 
+        run: |
+          npm audit --json > audit-report.json
+          echo "status=$?" >> $GITHUB_OUTPUT
+
+      # 7. Upload the result as artifact
+      - name: Uploading vulnerability report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit
+          path: audit-report.json
+          retention-days: 30 # amount of day report will be stored on gh
+
+      # 8. Send notifications on slack
+      - name: Vulnerabiliry found
+        if: failure()
+        uses: ravsamhq/notify-slack-action@v2
+        with:
+          status: ${{ job.status }}
+          notification_title: '❌ Dependency Failed!'
+          message: 'Vulnerabiliry foound. check it on the slack.'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # generate slack url and paste on env
