@@ -2,9 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - dev
+      - main
   pull_request:
-    branches: [main]
+    branches: 
+      - dev
+      - main 
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 
 defaults:
   run:
@@ -50,7 +61,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: projects/boutique-microservices/backend/services/${{ matrix.service }}
-        run: npm install
+        run: npm ci
 
       - name: Build
         working-directory: projects/boutique-microservices/backend/services/${{ matrix.service }}
@@ -88,3 +99,35 @@ jobs:
       - name: Test
         working-directory: projects/boutique-microservices/frontend
         run: CI=true npm test
+
+  deploy:
+    name: Deploy to dev branch
+    needs: [frontend, backend]
+    if: |
+      always() &&
+      needs.frontend.result == 'success' &&
+      needs.backend.result == 'success' &&
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: deploy new changes to dev [skip ci]"
+            git push origin HEAD:dev
+          fi
