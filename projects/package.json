@@ -23,6 +23,6 @@
   "workspaces": [
     "frontend",
     "backend/*",
-    "backend/services/*"
+    "projects/boutique-microservices/backend/services/*"
   ]
 }

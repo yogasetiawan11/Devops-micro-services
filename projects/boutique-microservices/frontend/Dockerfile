@@ -1,11 +1,12 @@
 # Frontend Dockerfile
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm run 
+RUN npm install --production=false
+
 
 # Copy source code
 COPY . .
@@ -13,13 +14,7 @@ COPY . .
 # Build the app
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# Intall serve globally
+RUN run npm -g serve
 
-COPY --from=builder /app/build ./app
-RUN addgroup -S Frontend \
-    adduser -S yogaw 
-
-EXPOSE 80
-
-CMD ["serve", "-s", "build"]
+CMD ["serve", "-s", "build", "l", "3000", "single"]
