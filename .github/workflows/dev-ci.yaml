@@ -39,7 +39,7 @@ jobs:
             projects/boutique-microservices/frontend/
 
   frontend-backend-build:
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     needs: setup-terraform
     steps:
       - name: Checkout
