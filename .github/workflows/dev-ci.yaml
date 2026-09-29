@@ -35,6 +35,10 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: | 
+            projects/boutique-microservices/backend/services/*/package.*json
+            projects/boutique-microservices/frontend/services/package.*json
+
 
       # ---------- FRONTEND ----------
       - name: Build & test frontend
