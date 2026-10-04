@@ -15,6 +15,8 @@ COPY . .
 RUN npm run build
 
 # Intall serve globally
-RUN run npm -g serve
+RUN npm install -g serve
 
-CMD ["serve", "-s", "build", "l", "3000", "single"]
+EXPOSE 3000
+
+CMD ["serve", "-s", "build", "-l", "3000", "--single"]
