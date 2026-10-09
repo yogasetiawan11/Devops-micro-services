@@ -5,7 +5,7 @@ metadata:
   name: owner
 rules:
 - apiGroups: [""]
-  resources: 
+  resources:
     - pods
     - services
     - configmaps
@@ -15,24 +15,34 @@ rules:
     - namespaces
     - nodes
     - serviceaccounts
-
-- apiGroups: ["apps"]
-  resources: 
-    - deployments
-    - replicasets
-    - statefulsets
-    - daemonsets
-
-- apiGroups: ["networking.k8s.io"]
-  resources: 
-    - ingresses
-    - networkpolicies
-    - ingressclasses
-
-  verbs: 
+  verbs:
     - get
     - list
     - watch
     - create
     - update
 
+- apiGroups: ["apps"]
+  resources:
+    - deployments
+    - replicasets
+    - statefulsets
+    - daemonsets
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+
+- apiGroups: ["networking.k8s.io"]
+  resources:
+    - ingresses
+    - networkpolicies
+    - ingressclasses
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
