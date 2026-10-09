@@ -165,7 +165,7 @@ jobs:
           cache-dependency-path: ${{ matrix.path }}/package-lock.json
 
       - name: install dependency ${{ matrix.service }}
-        if: ${{ startsWith(matrix.service, "projects/boutique-microservices/frontend" ) }} >> $GITHUB_OUTPUT
+        if: ${{ startsWith(matrix.service, "projects/boutique-microservices/frontend/" ) }} >> $GITHUB_OUTPUT
         run: |
           echo "Building applications ${{ matrix.service }} >> $GITHUB_OUTPUT"
           npm ci
