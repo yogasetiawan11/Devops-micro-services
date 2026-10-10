@@ -76,42 +76,42 @@ jobs:
           ignore-unfixed: true
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'HIGH'
+          severity: 'CRITICAL,HIGH'
           exit-code: 1
 
-  detect-path:
-      runs-on: ubuntu-latest
-      needs: Trivy-repo-scanning
-      outputs:
-        service: ${{ steps.filter.outputs.services }} >> $GITHUB_OUTPUT
-      steps:
-        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
-        - id: filter
-          uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d #v4.0.3
-          with:
-            filter: |
-              frontend:
-                - 'projects/boutique-microservices/frontend/'
-              auth:
-                - 'projects/boutique-microservices/backend/auth/'
-              gateway: 
-                - 'projects/boutique-microservices/backend/gateway/' 
-              order-service:
-                - 'projects/boutique-microservices/backend/order-service/'
-              orders: 
-                - 'projects/boutique-microservices/backend/orders/'
-              product-service :
-                - 'projects/boutique-microservices/backend/product-service'
-              user-service:
-                - 'projects/boutique-microservices/backend/user-service'   
+  # detect-path:
+  #     runs-on: ubuntu-latest
+  #     needs: Trivy-repo-scanning
+  #     outputs:
+  #       service: ${{ steps.filter.outputs.services }} >> $GITHUB_OUTPUT
+  #     steps:
+  #       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
+  #       - id: filter
+  #         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d #v4.0.3
+  #         with:
+  #           filter: |
+  #             frontend:
+  #               - 'projects/boutique-microservices/frontend/'
+  #             auth:
+  #               - 'projects/boutique-microservices/backend/auth/'
+  #             gateway: 
+  #               - 'projects/boutique-microservices/backend/gateway/' 
+  #             order-service:
+  #               - 'projects/boutique-microservices/backend/order-service/'
+  #             orders: 
+  #               - 'projects/boutique-microservices/backend/orders/'
+  #             product-service :
+  #               - 'projects/boutique-microservices/backend/product-service'
+  #             user-service:
+  #               - 'projects/boutique-microservices/backend/user-service'   
 
-        - id: set
-          run: |
-            echo "services=$(echo '${{ steps.filter.outputs.changes }}')" >> $GITHUB_OUTPUT
+  #       - id: set
+  #         run: |
+  #           echo "services=$(echo '${{ steps.filter.outputs.changes }}')" >> $GITHUB_OUTPUT
 
   build-dependencies:
     runs-on: ubuntu-latest
-    needs: detect-path
+    needs: Trivy-repo-scanning
     permissions:
       contents: read          # Required to checkout and read repo files
       security-events: write
@@ -146,13 +146,6 @@ jobs:
           # "projects/boutique-microservices/backend/user-service",
           # ]
 
-     # <------ Uncommit if you perefer cache from gh  actions official ------>
-      # - name: cache dependencies
-      #   uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-      #   id: npm-cache
-      #   with:
-      #     path: ${{ steps.npm-cache-dir.outputs.dir }}
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
     steps:
       - name: checkout the code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
@@ -164,7 +157,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ${{ matrix.path }}/package-lock.json
 
-      - name: install dependency ${{ matrix.service }}
+      - name: install dependencies ${{ matrix.service }}
         if: ${{ startsWith(matrix.service, "projects/boutique-microservices/frontend/" ) }} >> $GITHUB_OUTPUT
         run: |
           echo "Building applications ${{ matrix.service }} >> $GITHUB_OUTPUT"
