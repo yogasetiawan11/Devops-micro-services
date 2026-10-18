@@ -1,0 +1,47 @@
+version: "3"
+
+vars:
+  IMAGE_REPO: yogas4
+  IMAGE_TAG: foobarbaz
+  SERVICE_RELEASE_TAG: projects/boutique-microservices/frontend
+
+tasks:
+  install:
+    desc: Install frontend dependencies
+    cmds:
+      - npm install
+
+  install-ci:
+    desc: Install frontend dependencies (CI)
+    cmds:
+      - npm ci
+
+  run:
+    desc: Start React dev server
+    cmds:
+      - npm start
+
+  build:
+    desc: Build production bundle
+    cmds:
+      - npm run build
+
+  test:
+    desc: Run tests (CI mode)
+    cmds:
+      - CI=true npm test -- --watchAll=false
+
+  build-container-image:
+    desc: Build container image
+    cmds:
+      - docker build -t {{.IMAGE_REPO}}:{{.IMAGE_TAG}} .
+
+  build-container-image-multi-arch:
+    desc: Build multi-arch container image
+    cmds:
+      - |
+        docker buildx build \
+          --platform linux/amd64,linux/arm64 \
+          -t {{.IMAGE_REPO}}:{{.IMAGE_TAG}} \
+          --push \
+          .

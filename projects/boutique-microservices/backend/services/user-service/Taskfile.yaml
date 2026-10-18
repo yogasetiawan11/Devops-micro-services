@@ -1,0 +1,48 @@
+version: '3'
+
+vars:
+  IMAGE_REPO: yogas4
+  IMAGE_TAG: foobarbaz
+  SERVICE_RELEASE_TAG: projects/boutique-microservices/backend/services/product-service 
+
+# includes:
+#   utils:
+#     taskfile: ../../../utils/Taskfile.yaml
+#     dir: ../../../utils
+
+tasks:
+  build-container-image:
+    desc: Build container image
+    cmds:
+      - docker build -t {{.IMAGE_REPO}}:{{.IMAGE_TAG}} .
+
+  build-container-image-multi-arch:
+    desc: Build multi-arch container image
+    cmds:
+      - |
+        docker buildx build \
+        --platform linux/amd64,linux/arm64 \
+        -t {{.IMAGE_REPO}}:{{.IMAGE_TAG}} \
+        --push \
+        .
+
+
+  install-ci:
+    desc: there's no ci command in dependency
+    cmds:
+      - npm ci
+
+  build:
+    desc: Build and compile application
+    cmds:
+      - npm run build
+
+  run:
+    desc: Start user service in dev mode
+    cmds:
+      - npm run dev
+
+  start:
+    desc: Run user service 
+    cmds:
+      - npm start
