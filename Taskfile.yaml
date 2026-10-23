@@ -1,0 +1,91 @@
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  APP_NAME: yogasetiawan-tamvan
+
+includes:
+  frontend:
+    taskfile: ./projects/boutique-microservices/frontend/Taskfile.yaml
+    dir: ./projects/boutique-microservices/frontend
+ 
+  auth:
+    taskfile: ./projects/boutique-microservices/backend/services/auth/Taskfile.yaml
+    dir: ./projects/boutique-microservices/backend/services/auth
+
+  gateway:
+    taskfile: ./projects/boutique-microservices/backend/services/gateway/Taskfile.yaml
+    dir: ./projects/boutique-microservices/backend/services/gateway
+
+  order-service:
+    taskfile: ./projects/boutique-microservices/backend/services/order-service/Taskfile.yaml
+    dir: ./projects/boutique-microservices/backend/services/order-service
+
+  orders:
+    taskfile: ./projects/boutique-microservices/backend/services/orders/Taskfile.yaml
+    dir: ./projects/boutique-microservices/backend/services/orders
+
+  product-service:
+    taskfile: ./projects/boutique-microservices/backend/services/product-service/Taskfile.yaml
+    dir: ./projects/boutique-microservices/backend/services/product-service
+
+  user-service:
+    taskfile: ./projects/boutique-microservices/backend/services/user-service/Taskfile.yaml
+    dir: ./projects/boutique-microservices/backend/services/user-service
+
+
+tasks:
+  default:
+    desc: Print list executable task
+    cmds:
+      - task --list
+
+  hello:
+    desc: Menampilkan sapaan
+    cmds:
+      - echo "Halo dari {{.APP_NAME}}"
+
+  # commands to run build for all services
+  build:
+    desc: Build all services
+    cmds:
+      - task: frontend:build
+      - task: auth:build
+      - task: gateway:build
+      - task: order-service:build
+      - task: orders:build
+      - task: product-service:build
+      - task: user-service:build
+
+
+  # commands to test for frontend service
+  test:
+    desc: Run all tests
+    cmds:
+      # - task: auth:test
+      - task: frontend:test
+
+  # commands to install CI dependencies for all services
+  install-ci:
+    desc: Install all CI dependencies
+    cmds:
+      - task: auth:install-ci
+      - task: frontend:install-ci
+      - task: gateway:install-ci
+      - task: order-service:install-ci
+      - task: orders:install-ci
+      - task: product-service:install-ci
+      - task: user-service:install-ci
+
+
+
+trigger-workflow:
+  desc: task to execute act locally
+  env:
+    GITHUB_TOKEN:
+      sh: gh auth token
+  cmds:
+    - |
+      act workflow_dispatch -W {{.ROOT_DIR}}/.github/workflows/ci.yaml
+ 
