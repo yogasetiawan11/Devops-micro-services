@@ -41,10 +41,19 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GA_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
-          FIX_JSON: true
+
+
+          SAVE_SUPER_LINTER_SUMMARY: true
+          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true
+
+    
           FIX_YAML_PRETTIER: true
           PRE_COMMIT_CONFIG_FILE: .pre-commit-config.yaml
+          
+          FIX_JSON: true
+          VALIDATE_JSON: true
           VALIDATE_JSONL: true
+
           VALIDATE_YAML: true
           VALIDATE_TERRAFORM_FMT: true
           VALIDATE_JAVASCRIPT_PRETTIER: true
