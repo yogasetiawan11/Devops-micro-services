@@ -1,8 +1,8 @@
 name: ultimate CI 
 
 on:
-  # push:
-  #   branches: [main]
+  push:
+    branches: [main]
   
   # pull_request:
   #   types: [assigned, opened, edited, synchronize]
@@ -39,6 +39,7 @@ jobs:
       - name: Super-linter
         uses: super-linter/super-linter@2da136927bd4a73596db63044b504547c62cb854 #v9.0.0 # x-release-please-version
         env: 
+          GITHUB_TOKEN: ${{ secrets.GA_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
           FIX_JSON: true
           FIX_YAML_PRETTIER: true
@@ -48,7 +49,7 @@ jobs:
           VALIDATE_TERRAFORM_FMT: true
           VALIDATE_JAVASCRIPT_PRETTIER: true
           VALIDATE_ENV: true
-          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
           
           # LINTER_RULES_PATH: .
           # FILTER_REGEX_EXCLUDE: '.*/\.venv/.*|.*/venv/.*|.*/node_modules/.*|.*/dist/.*|.*/build/.*'
