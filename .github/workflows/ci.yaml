@@ -50,12 +50,11 @@ jobs:
           VALIDATE_JSON: true
           VALIDATE_JSONL: true
 
-          
           VALIDATE_TERRAFORM_FMT: true
           VALIDATE_JAVASCRIPT_PRETTIER: true
           VALIDATE_ENV: true
           
-          
+          FILTER_REGEX_EXCLUDE: '.*/\.github/workflows/.*'          
           # LINTER_RULES_PATH: .
           # FILTER_REGEX_EXCLUDE: '.*/\.venv/.*|.*/venv/.*|.*/node_modules/.*|.*/dist/.*|.*/build/.*'
           # VALIDATE_PYTHON_PYLINT: false

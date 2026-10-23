@@ -7,7 +7,6 @@ tasks:
       - |
         act workflow_dispatch \
           --container-architecture linux/amd64 \
-          -P ubuntu-22.04=node:16-bullseye-slim \
           --directory ../../.. \
           -W .github/workflows/ci.yaml 
 
