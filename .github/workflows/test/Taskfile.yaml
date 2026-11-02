@@ -8,9 +8,10 @@ tasks:
         act workflow_dispatch \
           --container-architecture linux/amd64 \
           --directory ../../.. \
-          -W .github/workflows/ci.yaml 
-
+          -W .github/workflows/ci.yaml \
+          -P ubuntu=catthehacker/ubuntu:act-latest
+          
   jono:
     cmds:
       - | 
-        echo 'Hellop there '
+        echo 'Hellop there'

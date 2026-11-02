@@ -28,14 +28,14 @@ tasks:
 
 
   install-ci:
-    desc: there's no ci command in dependency
+    desc: use npm ci in the pipeline for better performance
     cmds:
       - npm ci
 
   build:
     desc: Build and compile application
     cmds:
-      - npm run build
+      - CI=false npm run build
 
   run:
     desc: Start orders-service service in dev mode

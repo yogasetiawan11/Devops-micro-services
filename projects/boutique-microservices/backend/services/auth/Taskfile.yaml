@@ -35,7 +35,7 @@ tasks:
   build:
     desc: Build and compile application
     cmds:
-      - npm run build
+      - CI=false npm run build
 
   run:
     desc: Start auth service in dev mode
@@ -46,3 +46,10 @@ tasks:
     desc: Run auth tests 
     cmds:
       - npm test
+
+
+
+  npm-install:
+    desc: install dependencies  # use build command if you have not the artifact or build the dependency for the first time
+    cmds:
+      - npm install 

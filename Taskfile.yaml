@@ -80,12 +80,7 @@ tasks:
 
 
 
-trigger-workflow:
-  desc: task to execute act locally
-  env:
-    GITHUB_TOKEN:
-      sh: gh auth token
-  cmds:
-    - |
-      act workflow_dispatch -W {{.ROOT_DIR}}/.github/workflows/ci.yaml
- 
+  npm-install:
+    desc: npm install # use build command if you have not the artifact or build the dependency for the first time
+    cmds:
+      - task: auth:npm-install

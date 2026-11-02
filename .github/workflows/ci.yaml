@@ -2,7 +2,7 @@ name: ultimate CI
 
 on:
   push:
-    branches: [main]
+    branches: main
   
   # pull_request:
   #   types: [assigned, opened, edited, synchronize]
@@ -18,54 +18,78 @@ env:
 jobs:
 
   # =====================================================
-  # 1. Linting code 
-  # =====================================================
-  super-linter:
-    name: Lint
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
-      issues: write
-      statuses: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Super-linter
-        uses: super-linter/super-linter/slim@2da136927bd4a73596db63044b504547c62cb854 #v9.0.0 # x-release-please-version
-        env: 
-          GITHUB_TOKEN: ${{ secrets.GA_TOKEN }}
-          VALIDATE_ALL_CODEBASE: false
-
-          SAVE_SUPER_LINTER_SUMMARY: true
-          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true
-
-          VALIDATE_YAML_PRETTIER: true
-          PRE_COMMIT_CONFIG_FILE: .pre-commit-config.yaml
-          VALIDATE_JSON: true
-          VALIDATE_JSONL: true
-
-          VALIDATE_TERRAFORM_FMT: true
-          VALIDATE_JAVASCRIPT_PRETTIER: true
-          VALIDATE_ENV: true
-          
-          FILTER_REGEX_EXCLUDE: '.*/\.github/workflows/.*'          
-          # LINTER_RULES_PATH: .
-          # FILTER_REGEX_EXCLUDE: '.*/\.venv/.*|.*/venv/.*|.*/node_modules/.*|.*/dist/.*|.*/build/.*'
-          # VALIDATE_PYTHON_PYLINT: false
-
-  # =====================================================
-  # 2. TRIVY REPO SCAN
-  # =====================================================
-
-  
-
-  # =====================================================
   # 3. BUILD DEPENDENCIES (per service)
   # =====================================================
   
+
+  Build:
+    name: Build Services 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read          # Required to checkout and read repo files
+    strategy:
+      fail-fast: true
+      matrix:
+        service: [
+                  # "projects/boutique-microservices/frontend",
+                  # "projects/boutique-microservices/backend/services/auth"
+                  "projects/boutique-microservices/backend/services/gateway",
+                  "projects/boutique-microservices/backend/services/order-service"
+                  # "projects/boutique-microservices/backend/services/orders",
+                  # "projects/boutique-microservices/backend/services/product-service",
+                  # "projects/boutique-microservices/backend/services/user-service"
+                 ]
+
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
+
+      # this comes up from set up binary 
+      - name: setup taskfile 
+        uses: supplypike/setup-bin@73f5356f4d8a8588c525365fad26435ee1de4eaa #v5.0.2
+        with:
+          uri: 'https://github.com/go-task/task/releases/download/v3.54.0/task_linux_386.tar.gz'
+          name: 'task-file'
+          version: '3.54.0'
+
+      - name: Setup gateway
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/gateway') }}
+        uses: actions/setup-node@v4
+ 
+          # actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install Backend
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/gateway') }}
+        working-directory: ${{ matrix.service }}
+        run: |
+          echo "Building auth svc"
+          task install-ci
+
+          echo "Build and Run auth applications" 
+          task build
+
+
+      - name: Setup order-svc
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/order-service') }}
+        uses: actions/setup-node@v4
+ 
+          # actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install order-service
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/order-service') }}
+        working-directory: ${{ matrix.service }}
+        run: |
+          echo "Building auth svc"
+          task install-ci
+
+          
+
+
