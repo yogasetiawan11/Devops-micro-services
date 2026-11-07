@@ -24,12 +24,12 @@ tasks:
   build:
     desc: Build production bundle
     cmds:
-      - CI=false npm run build
+      - CI=false EXTEND_ESLINT=false npm run build
 
   test:
     desc: Run tests (CI mode)
     cmds:
-      - npm test -- --watchAll=true
+      - npm test -- --watchAll=false
 
   build-container-image:
     desc: Build container image

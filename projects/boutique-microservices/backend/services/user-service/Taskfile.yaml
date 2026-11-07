@@ -28,7 +28,7 @@ tasks:
 
 
   install-ci:
-    desc: there's no ci command in dependency
+    desc: install dependency
     cmds:
       - npm ci
 
@@ -42,6 +42,11 @@ tasks:
     cmds:
       - npm run dev
 
+  test:
+    desc: Run auth tests 
+    cmds:
+      - npm test --if-present
+      
   start:
     desc: Run user service 
     cmds:

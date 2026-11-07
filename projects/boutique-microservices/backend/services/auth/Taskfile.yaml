@@ -45,7 +45,7 @@ tasks:
   test:
     desc: Run auth tests 
     cmds:
-      - npm test
+      - npm test --if-present
 
 
 

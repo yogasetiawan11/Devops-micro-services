@@ -27,7 +27,7 @@ import { useState } from 'react';
 const drawerWidth = 240;
 
 const Layout: React.FC = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();

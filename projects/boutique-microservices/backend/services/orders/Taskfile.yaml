@@ -42,6 +42,11 @@ tasks:
     cmds:
       - npm run dev
 
+  test:
+    desc: Run auth tests 
+    cmds:
+      - npm test --if-present
+      
   start:
     desc: Run orders service 
     cmds:

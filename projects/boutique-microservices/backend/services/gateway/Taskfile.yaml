@@ -42,6 +42,11 @@ tasks:
     cmds:
       - npm run dev
 
+  test:
+    desc: Build and compile application
+    cmds:
+      - npm test --if-present
+
   start:
     desc: start gateway service
     cmds:

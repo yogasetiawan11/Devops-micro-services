@@ -77,3 +77,4 @@ k8s/**/secrets/
 # Precommit cache
 .pre-commit-cache/
 *.orig
+.devbox

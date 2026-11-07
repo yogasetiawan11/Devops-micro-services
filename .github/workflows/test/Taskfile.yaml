@@ -1,5 +1,8 @@
 version: '3'
 
+env:
+  GITHUB_TOKEN:
+    sh: gh auth token
 tasks:
   trigger-workflow:
     desc: "Run GitHub Actions workflow locally using act"
@@ -7,11 +10,8 @@ tasks:
       - |
         act workflow_dispatch \
           --container-architecture linux/amd64 \
+          -s GITHUB_TOKEN \
+          -e {{.PWD}}/event.json \
           --directory ../../.. \
           -W .github/workflows/ci.yaml \
           -P ubuntu=catthehacker/ubuntu:act-latest
-          
-  jono:
-    cmds:
-      - | 
-        echo 'Hellop there'

@@ -16,33 +16,161 @@ env:
   DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
 
 jobs:
+  # =====================================================
+  # 1. Linting code 
+  # =====================================================
+  super-linter:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      issues: write
+      statuses: write
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Super-linter
+        uses: super-linter/super-linter/slim@2da136927bd4a73596db63044b504547c62cb854 #v9.0.0 # x-release-please-version
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GA_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+
+          SAVE_SUPER_LINTER_SUMMARY: true
+          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true
+
+          VALIDATE_YAML_PRETTIER: true
+          PRE_COMMIT_CONFIG_FILE: .pre-commit-config.yaml
+          VALIDATE_JSON: true
+          VALIDATE_JSONL: true
+
+          VALIDATE_TERRAFORM_FMT: true
+          VALIDATE_JAVASCRIPT_PRETTIER: true
+          VALIDATE_ENV: true
+          
+          FILTER_REGEX_EXCLUDE: '.*/\.github/workflows/.*'     
+
+  # =====================================================
+  # 2. Scanning Secret in the Repository 
+  # =====================================================
+  Trivy-repo-scanning:
+    name: repo-scan
+    runs-on: ubuntu-latest
+    # needs: super-linter
+    permissions:
+      contents: read          
+      security-events: write  
+
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 #v0.36.0
+        with:  
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'   # scan and upload to logs ci
+          severity: 'CRITICAL,HIGH'
+          exit-code: 1
+          
   # =====================================================
   # 3. BUILD DEPENDENCIES (per service)
   # =====================================================
-  
+  files-changed:
+    name: detect files changed
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.changes.outputs.changes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
+
+      - name: Check for backend file changes
+        uses: dorny/paths-filter@v4.0.3 # v4.0.3  
+        id: changes
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          filters: .github/utils/file-filters.yml
+
 
   Build:
     name: Build Services 
     runs-on: ubuntu-latest
+    needs: files-changed
     permissions:
       contents: read          # Required to checkout and read repo files
     strategy:
       fail-fast: true
       matrix:
         service: [
-                  # "projects/boutique-microservices/frontend",
-                  # "projects/boutique-microservices/backend/services/auth"
+                  "projects/boutique-microservices/frontend",
+                  "projects/boutique-microservices/backend/services/auth",
                   "projects/boutique-microservices/backend/services/gateway",
-                  "projects/boutique-microservices/backend/services/order-service"
-                  # "projects/boutique-microservices/backend/services/orders",
-                  # "projects/boutique-microservices/backend/services/product-service",
-                  # "projects/boutique-microservices/backend/services/user-service"
+                  "projects/boutique-microservices/backend/services/order-service",
+                  "projects/boutique-microservices/backend/services/orders",
+                  "projects/boutique-microservices/backend/services/product-service",
+                  "projects/boutique-microservices/backend/services/user-service"
                  ]
 
     steps:
       - name: checkout the code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
+
+      - name: Setup auth
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/auth') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+      - name: Setup gateway
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/gateway') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+      - name: Setup order-service
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/order-service') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+      - name: Setup orders
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/orders') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+      - name: Setup product-service
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/product-service') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+      - name: Setup user-service
+        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/user-service') }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
 
       # this comes up from set up binary 
       - name: setup taskfile 
@@ -52,43 +180,18 @@ jobs:
           name: 'task-file'
           version: '3.54.0'
 
-      - name: Setup gateway
-        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/gateway') }}
-        uses: actions/setup-node@v4
- 
-          # actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ${{ matrix.service }}/package-lock.json
-
       - name: Install Backend
-        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/gateway') }}
         working-directory: ${{ matrix.service }}
         run: |
-          echo "Building auth svc"
           task install-ci
 
-          echo "Build and Run auth applications" 
-          task build
+          if [[ "${{ matrix.service }}" == 'projects/boutique-microservices/frontend' ]]; then
+            task build
+          else
+            echo "Skipping for Backend services" 
+          fi
 
-
-      - name: Setup order-svc
-        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/order-service') }}
-        uses: actions/setup-node@v4
- 
-          # actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ${{ matrix.service }}/package-lock.json
-
-      - name: Install order-service
-        if: ${{ startsWith(matrix.service, 'projects/boutique-microservices/backend/services/order-service') }}
-        working-directory: ${{ matrix.service }}
-        run: |
-          echo "Building auth svc"
-          task install-ci
+          task test
 
           
 
