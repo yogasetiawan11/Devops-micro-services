@@ -5,6 +5,7 @@ on:
     branches: main
     paths:
       - 'projects/boutique-microservices/*'
+      - '.github/**'
 
   workflow_dispatch:
 
