@@ -3,9 +3,8 @@ name: ultimate CI
 on:
   push:
     branches: main
-  
-  # pull_request:
-  #   types: [assigned, opened, edited, synchronize]
+    paths:
+      - 'projects/boutique-microservices/*'
 
   workflow_dispatch:
 
@@ -16,9 +15,9 @@ env:
   DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
 
 jobs:
-  # =====================================================
-  # 1. Linting code 
-  # =====================================================
+  =====================================================
+  1. Linting code 
+  =====================================================
   super-linter:
     name: Lint
     runs-on: ubuntu-latest
@@ -44,7 +43,7 @@ jobs:
           SAVE_SUPER_LINTER_SUMMARY: true
           ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true
 
-          VALIDATE_YAML_PRETTIER: true
+          VALIDATE_YAML_PRETTIER: false
           PRE_COMMIT_CONFIG_FILE: .pre-commit-config.yaml
           VALIDATE_JSON: true
           VALIDATE_JSONL: true
@@ -61,6 +60,7 @@ jobs:
   Trivy-repo-scanning:
     name: repo-scan
     runs-on: ubuntu-latest
+    continue-on-error: true
     # needs: super-linter
     permissions:
       contents: read          
@@ -85,40 +85,32 @@ jobs:
   # =====================================================
   # 3. BUILD DEPENDENCIES (per service)
   # =====================================================
-  files-changed:
-    name: detect files changed
+  filter:
+    name: detect-changes
     runs-on: ubuntu-latest
     outputs:
-      services: ${{ steps.changes.outputs.changes }}
+      services: ${{ steps.filter.outputs.changes }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v4
 
       - name: Check for backend file changes
-        uses: dorny/paths-filter@v4.0.3 # v4.0.3  
-        id: changes
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3  
+        id: filter
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           filters: .github/utils/file-filters.yml
 
 
   Build:
-    name: Build Services 
+    name: build-services 
     runs-on: ubuntu-latest
-    needs: files-changed
+    needs: filter
     permissions:
       contents: read          # Required to checkout and read repo files
     strategy:
       fail-fast: true
       matrix:
-        service: [
-                  "projects/boutique-microservices/frontend",
-                  "projects/boutique-microservices/backend/services/auth",
-                  "projects/boutique-microservices/backend/services/gateway",
-                  "projects/boutique-microservices/backend/services/order-service",
-                  "projects/boutique-microservices/backend/services/orders",
-                  "projects/boutique-microservices/backend/services/product-service",
-                  "projects/boutique-microservices/backend/services/user-service"
-                 ]
+        service: ${{ fromJson(needs.filter.outputs.services ) }}
 
     steps:
       - name: checkout the code

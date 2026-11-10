@@ -1,17 +1,25 @@
 # The file-filters.yaml file to define path-based filtering rules for this GitHub Actions workflow. 
 # This file is used in conjunction with a third-party action to intelligently determine
 # which specific services have been modified in a commit or pull request.
-projects/boutique-microservices:
+projects/boutique-microservices/frontend:
   - "projects/boutique-microservices/frontend/**"
   - "./github/workflows/ci.yaml"
   - ".github/actions/setup-dependencies/action.yaml"
 
-projects/boutique-microservices/backend:
+projects/boutique-microservices/backend/services/auth:
   - "projects/boutique-microservices/backend/services/auth/**"
+
+projects/boutique-microservices/backend/services/gateway:
   - "projects/boutique-microservices/backend/services/gateway/**"
+
+projects/boutique-microservices/backend/services/orders:
   - "projects/boutique-microservices/backend/services/orders/**"
+
+projects/boutique-microservices/backend/services/order-service:
   - "projects/boutique-microservices/backend/services/order-service/**"
+
+projects/boutique-microservices/backend/services/product-service:
   - "projects/boutique-microservices/backend/services/product-service/**"
+
+projects/boutique-microservices/backend/services/user-service:
   - "projects/boutique-microservices/backend/services/user-service/**"
-  - "./github/workflows/ci.yaml"
-  - ".github/actions/setup-dependencies/action.yaml"
